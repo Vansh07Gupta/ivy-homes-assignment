@@ -1,5 +1,17 @@
 node_modules/
 .env
-projects.json
-rentals.json
-listings.json
+CLAUDE.md
+
+# Local-only data pull + analysis tooling used to derive submission.json's
+# answers and findings - not part of the frontend deliverable, methodology
+# is documented in README.md instead.
+/listings.json
+/rentals.json
+/projects.json
+/duplicate_pairs.json
+/listings_with_canonical_id.json
+/script.js
+/analyze.js
+/q2.js
+/package.json
+/package-lock.json
