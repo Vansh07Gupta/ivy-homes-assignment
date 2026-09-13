@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-09-14T04:28:10.820Z",
+  "totalListingRecords": 3500,
+  "uniqueProperties": 3349,
+  "duplicatePairs": 153,
+  "activeListings": 2792,
+  "corruptListingCount": 18,
+  "fakeListingCount": 230,
+  "avgPricePerSqft2bhk": 27457.66,
+  "costliestProject": {
+    "project_id": "P60090",
+    "price_max_inr": 989000000
+  },
+  "listingsLast7Days": 129,
+  "projectsWithWrongListingCount": 106,
+  "totalProjects": 400,
+  "notes": [
+    "Project price_min/price_max are documented as integer rupees but are actually in crores.",
+    "/v1/analytics/summary does not exist - these figures are computed from the full paginated dataset instead."
+  ]
+}
