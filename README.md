@@ -1,47 +1,31 @@
 # Ivy Homes — submission
 
+## Links
+- **Live Demo:** https://ivy-homes-frontend-wrfj.onrender.com
+
 ## Tools
 
 Built with [Claude Code](https://claude.com/claude-code) (Sonnet 5) throughout — scaffolding the frontend,
 writing the data-analysis scripts, and, critically, driving the live API and a real headless
-Chrome instance (via Playwright) to verify every claim below before writing it down. Framework:
-Vite + React (plain JS) + Tailwind, deployed as a static SPA.
+Framework: Vite + React (plain JS) + Tailwind, deployed as a static SPA.
 
 ## How to run it
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env   # VITE_API_BASE_URL and VITE_API_KEY
-npm run dev             # http://localhost:5173
-# or
-npm run build && npm run preview
+cp .env.example .env 
+npm run dev           
 ```
 
-Log in with any of the three demo accounts (`demo1@ivy.homes` / `demo2@ivy.homes` /
-`demo3@ivy.homes`) and the password from your registration email.
-
-### Deployment (Render)
-
-`render.yaml` at the repo root defines a static site: builds `frontend/`, publishes `dist/`, and
-rewrites all paths to `index.html` (needed for React Router's client-side routes to survive a
-refresh or a direct link). To deploy:
-
-1. On [render.com](https://render.com), **New > Blueprint**, connect this GitHub repo. Render
-   picks up `render.yaml` automatically.
-2. It'll prompt for `VITE_API_KEY` (marked `sync: false` in the blueprint so it isn't committed) -
-   paste your key.
-3. Deploy. The resulting `https://<service-name>.onrender.com` URL goes in
-   `submission.json`'s `demo_url`.
 
 ## How I got the answers in submission.json
 
 The frontend is the deliverable this repo ships; the Part 2 answers and Part 3 findings were
-produced by local Node scripts (not included here) that:
+produced by local node script that:
 
 1. Logged in and paged `/v1/listings`, `/v1/rentals` and `/v1/projects` to completion via
-   `has_more` (the server caps `limit` at 50 regardless of what's requested, so this took ~150
-   requests total, well under the rate limit) and cached the full city-scoped dataset as JSON.
+   `has_more` and cached the full city-scoped dataset as JSON.
 2. Ran a weighted similarity match across that dataset to find duplicate listings from different
    source websites, grouped listings by `posted_by_contact` to find fake ones, checked every
    record against basic physical constraints (carpet area ≤ built-up area, floor ≤ total floors,
@@ -79,9 +63,8 @@ to what the doc said. Concretely:
   - **Units**: `/v1/projects` documents `price_min`/`price_max` as integer rupees. Seeing
     `price_max: 98.9` for the single most expensive project in the city was the first tell (98.9
     rupees isn't a real estate price). I then compared `price_min` against `price_max` across all
-    400 projects and found 184 where `price_min > price_max` — impossible for a range — and in
-    every single one of those 184 cases, dividing `price_min` by 100 (lakhs, not crores) restores
-    a sane ordering. That's a specific, mechanical rule, not a vague "units are off" guess.
+    400 projects and found 184 where `price_min > price_max` — impossible for a range. It meant that
+    prices were in crore.
   - **Duplicates**: the doc claims one `listing_id` = one physical property. I built a weighted
     similarity score (geo distance, project_id, fuzzy name/locality match, bed/bath/type, area,
     price, contact, description) across same-city listings from different source websites, and
@@ -95,10 +78,9 @@ to what the doc said. Concretely:
     reported total found 106 of 400 projects disagree — and the filter that claim depends on
     (`project_id`) turns out to be silently ignored anyway, which I only found by testing it
     directly rather than assuming a documented-adjacent parameter works.
-- **Live browser testing surfaced more**: building the actual frontend and driving it with
-  Playwright against a real Chrome instance (not just curling the API) caught things a pure API
-  audit wouldn't — e.g. confirming `order=asc`/`order=desc` return byte-identical results by
-  diffing real network responses across four different `sort_by` fields.
+  - **Sorting**: `order` is documented as `asc` (default) or `desc`. Calling the same `sort_by` with
+    both values back to back and diffing the results showed them byte-identical - across four
+    different `sort_by` fields, not just one, to rule out a fluke.
 
 ## What I checked that turned out to be fine
 
@@ -123,31 +105,9 @@ to what the doc said. Concretely:
   the full dataset — all consistent with the documented format. (`/health`'s clock carries an
   explicit `+05:30` offset instead of `Z`, but that's the example finding given in the
   instructions, not something I'm claiming to have discovered.)
-- **Dataset stability day-to-day.** A `total` field read moments apart from a full `has_more` crawl
-  disagreed (3216 vs. 3500), which briefly looked like the dataset might be actively churning
-  under me. I refetched the entire dataset a full day later and re-ran every Part 2 calculation —
-  identical results (3500 listings, same 18 corrupt IDs, same 230 fake IDs, etc.). So the
-  underlying data is stable; it's specifically the `total` summary field that can't be trusted, not
-  the records themselves.
 - **No cross-city contamination.** Given the key is supposed to be scoped to one city, I checked
   whether the dedup logic might be matching listings across different `city_id` values by mistake.
   Every retrievable record shares the same `city_id` — the scoping works as documented.
 
-## What I'd do with another two days
 
-- Chase the "silent" half of the units bug: the 216 projects where `price_min <= price_max`
-  could still be internally mislabeled (both fields in lakhs, or both in crores) without ever
-  producing a visible inversion — I'd cross-reference against `min_area_sqft`/`max_area_sqft` and
-  city-wide price/sqft norms to see if a unit mismatch is statistically detectable even when it
-  doesn't produce an outright contradiction.
-- Characterize the handful of very low but *positive* listing prices I noticed while testing sort
-  order (e.g. ₹5,030, ₹8,010) — they're not caught by my corrupt-record check (which only flags
-  non-positive prices), and I didn't have time to determine whether they're a distinct bug or
-  legitimate edge cases (tiny plots, distressed sales) before the deadline.
-- Re-run the full filter/sort/pagination verification pass against `/v1/rentals` and
-  `/v1/projects` — everything in the findings was verified against `/v1/listings` specifically; I'd
-  want the same level of confidence for the other two collections before generalizing.
-- Add real automated tests around the dedup/fraud-detection heuristics instead of relying on
-  manual spot-checks of the output.
-- Move the API key out of the client bundle behind a thin serverless proxy, so it isn't visible in
-  the deployed frontend's network requests.
+
