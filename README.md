@@ -10,7 +10,7 @@ frontend, writing the data-analysis scripts, and, critically, driving the live A
 headless Chrome instance (via Playwright) to verify every claim below before writing it down.
 Framework: Vite + React (plain JS) + Tailwind, deployed as a static SPA.
 
-## How to run it
+## How to run the frontend
 
 ```bash
 cd frontend
@@ -21,18 +21,28 @@ npm run dev
 
 ## How I got the answers in submission.json
 
-The frontend is the deliverable this repo ships; the Part 2 answers and Part 3 findings were
-produced by local Node scripts (not included here) that:
+The Part 2 answers and Part 3 findings came from two scripts at the repo root:
 
-1. Logged in and paged `/v1/listings`, `/v1/rentals` and `/v1/projects` to completion via
-   `has_more` and cached the full city-scoped dataset as JSON.
-2. Ran a weighted similarity match across that dataset to find duplicate listings from different
-   source websites, grouped listings by `posted_by_contact` to find fake ones, checked every
-   record against basic physical constraints (carpet area ≤ built-up area, floor ≤ total floors,
-   positive price/area) to find corrupt ones, and cross-counted live listings per `project_id`
-   against each project's reported `total_listings`.
-3. Wrote the resulting counts/IDs straight into `submission.json`'s `answers`, and the same
-   evidence IDs into `findings`.
+```bash
+npm install
+cp .env.example .env   # EMAIL, PASSWORD, API_KEY from your registration email
+npm run fetch           # node script.js - pages listings/rentals/projects to completion via
+                         # has_more, writes listings.json / rentals.json / projects.json
+npm run analyze          # node analyze.js - computes all ten Part 2 answers and writes
+                          # duplicate_pairs.json + frontend/src/data/insights.json
+```
+
+`analyze.js` is the source of truth for every number in `submission.json`'s `answers`. In brief,
+it:
+
+1. Runs a weighted similarity match across the full dataset (geo distance, project_id, fuzzy
+   name/locality, bed/bath/area/price closeness, contact number) to find listings from different
+   source websites that describe the same physical property.
+2. Groups listings by `posted_by_contact` to find fake ones (same "verified" number claimed by
+   different people), and checks every record against basic physical constraints (carpet area ≤
+   built-up area, floor ≤ total floors, positive price/area) to find corrupt ones.
+3. Cross-counts live listings per `project_id` against each project's reported `total_listings`.
+4. Prints all ten answers and writes the evidence IDs straight into the files above.
 
 The exact methodology behind each of those checks - and the specific numbers/requests that
 falsified each documentation claim - is in the next two sections.
