@@ -50,17 +50,17 @@ async function apiRequest(url, token) {
 }
 
 async function fetchListings(token, offset) {
-  const url = `https://solve.ivy.homes/v1/listings?offset=${offset}&limit=20`;
+  const url = `https://solve.ivy.homes/v1/listings?offset=${offset}&limit=200`;
   return await apiRequest(url, token);
 }
 
 async function fetchRentals(token, offset) {
-  const url = `https://solve.ivy.homes/v1/rentals?offset=${offset}&limit=20`;
+  const url = `https://solve.ivy.homes/v1/rentals?offset=${offset}&limit=200`;
   return await apiRequest(url, token);
 }
 
 async function fetchProjects(token, offset) {
-  const url = `https://solve.ivy.homes/v1/projects?offset=${offset}&limit=20`;
+  const url = `https://solve.ivy.homes/v1/projects?offset=${offset}&limit=200`;
   return await apiRequest(url, token);
 }
 
