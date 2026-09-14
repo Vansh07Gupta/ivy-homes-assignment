@@ -1,12 +1,10 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { fetchAllPages } from "../api/client";
 import { useAuth } from "./AuthContext";
 
 const DataContext = createContext(null);
 
-// The assignment's own advice: pull the whole (city-scoped) dataset down
-// once and filter/paginate/browse it locally, rather than trusting the
-// server's documented filters - several of which are quietly ignored.
+
 export function DataProvider({ children }) {
   const { isAuthenticated } = useAuth();
   const [state, setState] = useState({
@@ -18,7 +16,11 @@ export function DataProvider({ children }) {
     loadedAt: null,
   });
 
+  const inFlightRef = useRef(false);
+
   const load = useCallback(async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const [listings, rentals, projects] = await Promise.all([
@@ -29,6 +31,8 @@ export function DataProvider({ children }) {
       setState({ listings, rentals, projects, loading: false, error: null, loadedAt: Date.now() });
     } catch (err) {
       setState((s) => ({ ...s, loading: false, error: err.message }));
+    } finally {
+      inFlightRef.current = false;
     }
   }, []);
 
