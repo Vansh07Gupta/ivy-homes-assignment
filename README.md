@@ -5,8 +5,9 @@
 
 ## Tools
 
-Built with [Claude Code](https://claude.com/claude-code) (Sonnet 5) throughout — scaffolding the frontend,
-writing the data-analysis scripts, and, critically, driving the live API and a real headless
+Built with [Claude Code](https://claude.com/claude-code) (Sonnet 5) throughout — scaffolding the
+frontend, writing the data-analysis scripts, and, critically, driving the live API and a real
+headless Chrome instance (via Playwright) to verify every claim below before writing it down.
 Framework: Vite + React (plain JS) + Tailwind, deployed as a static SPA.
 
 ## How to run it
@@ -14,15 +15,14 @@ Framework: Vite + React (plain JS) + Tailwind, deployed as a static SPA.
 ```bash
 cd frontend
 npm install
-cp .env.example .env 
-npm run dev           
+cp .env.example .env
+npm run dev
 ```
-
 
 ## How I got the answers in submission.json
 
 The frontend is the deliverable this repo ships; the Part 2 answers and Part 3 findings were
-produced by local node script that:
+produced by local Node scripts (not included here) that:
 
 1. Logged in and paged `/v1/listings`, `/v1/rentals` and `/v1/projects` to completion via
    `has_more` and cached the full city-scoped dataset as JSON.
@@ -109,5 +109,14 @@ to what the doc said. Concretely:
   whether the dedup logic might be matching listings across different `city_id` values by mistake.
   Every retrievable record shares the same `city_id` — the scoping works as documented.
 
+## What I'd do with another two days
 
-
+- Dig more into the projects whose prices look fine (`price_min <= price_max`) - some of those
+  could still have the wrong unit and just not show it as obviously as the 184 that do.
+- Look closer at a few very low but positive listing prices I noticed (like ₹5,030) - not sure yet
+  if they're a real bug or just unusual listings.
+- Check filters and sorting on `/v1/rentals` and `/v1/projects` the same way I did for
+  `/v1/listings`, instead of assuming they behave the same.
+- Write some proper tests for the duplicate/fake-listing detection instead of just eyeballing the
+  output.
+- Keep the API key off the client entirely (right now it's visible in the browser's network tab).
