@@ -21,6 +21,19 @@ npm run build && npm run preview
 Log in with any of the three demo accounts (`demo1@ivy.homes` / `demo2@ivy.homes` /
 `demo3@ivy.homes`) and the password from your registration email.
 
+### Deployment (Render)
+
+`render.yaml` at the repo root defines a static site: builds `frontend/`, publishes `dist/`, and
+rewrites all paths to `index.html` (needed for React Router's client-side routes to survive a
+refresh or a direct link). To deploy:
+
+1. On [render.com](https://render.com), **New > Blueprint**, connect this GitHub repo. Render
+   picks up `render.yaml` automatically.
+2. It'll prompt for `VITE_API_KEY` (marked `sync: false` in the blueprint so it isn't committed) -
+   paste your key.
+3. Deploy. The resulting `https://<service-name>.onrender.com` URL goes in
+   `submission.json`'s `demo_url`.
+
 ## How I got the answers in submission.json
 
 The frontend is the deliverable this repo ships; the Part 2 answers and Part 3 findings were
